@@ -46,7 +46,7 @@ const ProcessedImage = styled("img")({
 interface ResultData {
   processed_images: string[];
   label: string;
-  occurancy: number;
+  confidence: number;
 }
 
 const ResultPage: React.FC = () => {
@@ -88,7 +88,7 @@ const ResultPage: React.FC = () => {
                   CONFIDENCE :
                 </Typography>
                 <Typography variant="h5" fontWeight="bold">
-                  {result.occurancy && result.occurancy.toFixed(2)}%
+                  {result.confidence && result.confidence.toFixed(2)}%
                 </Typography>
               </ResultBox>
             </Grid>
