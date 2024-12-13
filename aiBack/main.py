@@ -23,7 +23,7 @@ app.add_middleware(
 
 
 # Load the Keras model
-MODEL_PATH = "traffic_sign_classifier_final.keras"
+MODEL_PATH = "traffic_sign_classifier_increased_epochs.h5"
 model = tf.keras.models.load_model(MODEL_PATH)
 
 def image_to_base64(image):
@@ -43,22 +43,31 @@ def image_to_base64(image):
 
 def preprocess_image(image):
     # Resize the image
-    image = image.resize((224, 224))
+    image = image.resize((150, 150))
 
     # Convert to RGB if needed
     if image.mode != "RGB":
         image = image.convert("RGB")
 
-    # Convert to a numpy array and normalize
-    image = np.array(image) / 255.0 
+
 
     # Ensure the input has the expected dimensions
     image = np.expand_dims(image, axis=0)  # Add batch dimension
     image  = np.squeeze(image, axis=None)
 
+        # Convert to a numpy array and normalize
+  #  image = np.array(image) / 255.0 
+
+    img_array = tf.keras.utils.img_to_array(image) / 255.0  # Normalize the image
+    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+    return img_array
+
     return image
 
-
+class_names = ['Green Light', 'Red Light', 'Speed Limit 10', 'Speed Limit 100', 'Speed Limit 110',
+               'Speed Limit 120', 'Speed Limit 20', 'Speed Limit 30', 'Speed Limit 40',
+               'Speed Limit 50', 'Speed Limit 60', 'Speed Limit 70', 'Speed Limit 80',
+               'Speed Limit 90', 'Stop']
 
 @app.post("/process-image/")
 async def process_image(file: UploadFile = File(...)):
@@ -72,25 +81,22 @@ async def process_image(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing the image: {e}")
     
+    image_resized = image.resize((100, 100))
+    image_grayscale = image.convert("L")    
+    image_rotated = image.rotate(45)    
 
     try:
         result_image = preprocess_image(image)
-        model.summary()
-        print(result_image.shape)
-        #predictions = model.predict(result_image)
-       # predicted_classes = predictions.argmax(axis=1)
-       # confidence = np.max(predictions[0]) * 100
+        predictions = model.predict(result_image)
+        predicted_classes = predictions.argmax(axis=1)[0]
+        predicted_class_name = class_names[predicted_classes]
+        confidence = np.max(predictions[0]) * 100
+        print(predicted_class_name)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error during model inference: {e}")
 
-
-
-
-    image_resized = image.resize((100, 100))
-    image_grayscale = image.convert("L")    
-    image_rotated = image.rotate(45)          
     
   
     images = []
     
-    return JSONResponse(content={"processed_images": images, "label" : "stop", "occurancy" : 99.99})
+    return JSONResponse(content={"processed_images": images, "label" : predicted_class_name, "confidence" : float(confidence)})

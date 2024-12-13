@@ -85,7 +85,7 @@ const ResultPage: React.FC = () => {
             <Grid item xs={6}>
               <ResultBox>
                 <Typography variant="h5" marginRight={2} fontWeight="bold">
-                  OCCURRENCE :
+                  CONFIDENCE :
                 </Typography>
                 <Typography variant="h5" fontWeight="bold">
                   {result.occurancy && result.occurancy.toFixed(2)}%
